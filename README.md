@@ -1,70 +1,103 @@
-# Getting Started with Create React App
+# Synonyms Search Tool
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern React app for searching and managing synonym relationships. Results combine your Firestore dictionary, a static WordNet dataset, and live Datamuse suggestions.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Multi-source search** — community (Firestore), static dictionary (~12k words), and online (Datamuse)
+- Add new words and link them into synonym clusters in Firestore
+- Recent search history (stored locally)
+- Copy synonyms to clipboard
+- Light / dark theme toggle
+- Keyboard shortcuts: `/` to focus search, `Esc` to clear
+- Accessible forms, labels, and live result announcements
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Firebase Firestore
+- Vitest + Testing Library
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### 1. Install dependencies
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm install
+```
 
-### `npm run build`
+### 2. Configure Firebase
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Copy the example env file and add your Firebase project credentials:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+cp .env.example .env
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Required variables:
 
-### `npm run eject`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_DATABASE_URL`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Firestore documents are stored in the `words` collection with this shape:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```json
+{
+  "word": "happy",
+  "synonyms": ["joyful", "cheerful"]
+}
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 3. Run the app
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:5173](http://localhost:5173).
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Scripts
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview production build |
+| `npm test` | Run unit tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run generate-dictionary` | Regenerate `public/data/synonyms.json` from WordNet data |
 
-### Code Splitting
+## Data Sources
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| Source | Type | Description |
+|---|---|---|
+| Firestore `words` | Community | Words you add via the app; highest priority in results |
+| `public/data/synonyms.json` | Static (~488 KB) | WordNet-derived dictionary (12k+ headwords), lazy-loaded on first search |
+| [Datamuse API](https://www.datamuse.com/api/) | Online | Live synonym suggestions; no API key required until 2027 |
 
-### Analyzing the Bundle Size
+Results are merged and deduplicated, with each synonym tagged by source in the UI.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Security Notes
 
-### Making a Progressive Web App
+- Never commit `.env` files with real credentials.
+- Restrict Firestore write access in production (e.g. authenticated users or admin-only add mode).
+- Firebase API keys are public in client apps; security depends on Firestore rules.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Project Structure
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+src/
+  components/     UI components
+  config/         Firebase initialization
+  hooks/          React hooks
+  services/       Firestore synonym logic
+  utils/          Parsing and normalization helpers
+  types/          Shared TypeScript types
+```

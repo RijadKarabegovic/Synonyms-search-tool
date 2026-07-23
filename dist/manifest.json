@@ -1,0 +1,8 @@
+{
+  "short_name": "Synonyms",
+  "name": "Synonyms Search Tool",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#050816",
+  "background_color": "#050816"
+}
