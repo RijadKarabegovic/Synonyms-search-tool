@@ -91,7 +91,7 @@ Results are merged and deduplicated, with each synonym tagged by source in the U
 3. Enable them for **Production** (and Preview if you use preview deploys).
 4. **Redeploy** after adding or changing variables. Vite inlines env vars at **build time**, so a redeploy is required.
 
-Without Firebase env vars, the app still runs **search** (static + Datamuse). **Add** mode and community results need Firebase configured.
+The repo includes the public Firebase web config for this project, so **Vercel works without env vars** for the default Firestore database. Set `VITE_FIREBASE_*` only if you use a **different** Firebase project.
 
 ## Security Notes
 
