@@ -11,7 +11,8 @@ vi.mock("firebase/firestore", () => ({
 }));
 
 vi.mock("../config/firebase", () => ({
-  db: {},
+  getDb: () => ({}),
+  isFirebaseConfigured: () => true,
 }));
 
 import {

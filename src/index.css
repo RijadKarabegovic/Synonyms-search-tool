@@ -270,6 +270,39 @@ body {
   color: var(--text-muted);
 }
 
+.config-notice {
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.config-notice-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.config-notice-text {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.config-notice-list {
+  margin: 0.65rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.mode-tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .kbd {
   display: inline-block;
   padding: 0.1rem 0.35rem;

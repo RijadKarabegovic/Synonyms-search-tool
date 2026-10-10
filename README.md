@@ -84,6 +84,15 @@ Open [http://localhost:5173](http://localhost:5173).
 
 Results are merged and deduplicated, with each synonym tagged by source in the UI.
 
+## Deploying to Vercel
+
+1. Connect the repo; `vercel.json` sets the output directory to `dist`.
+2. In **Project → Settings → Environment Variables**, add every `VITE_FIREBASE_*` variable from `.env.example` (use the same values as your local `.env`).
+3. Enable them for **Production** (and Preview if you use preview deploys).
+4. **Redeploy** after adding or changing variables. Vite inlines env vars at **build time**, so a redeploy is required.
+
+Without Firebase env vars, the app still runs **search** (static + Datamuse). **Add** mode and community results need Firebase configured.
+
 ## Security Notes
 
 - Never commit `.env` files with real credentials.

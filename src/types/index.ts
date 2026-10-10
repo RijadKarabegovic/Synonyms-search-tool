@@ -24,6 +24,7 @@ export type SynonymErrorCode =
   | "EMPTY_SYNONYMS"
   | "WORD_EXISTS"
   | "NOT_FOUND"
+  | "FIREBASE_NOT_CONFIGURED"
   | "NETWORK"
   | "UNKNOWN";
 

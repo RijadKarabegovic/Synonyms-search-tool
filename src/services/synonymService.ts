@@ -4,7 +4,7 @@ import {
   writeBatch,
   type Firestore,
 } from "firebase/firestore";
-import { db } from "../config/firebase";
+import { getDb, isFirebaseConfigured } from "../config/firebase";
 import { SynonymError } from "../types";
 import {
   dedupeSynonyms,
@@ -36,8 +36,9 @@ async function readSynonyms(
 
 export async function fetchSynonyms(
   word: string,
-  firestore: Firestore = db
+  firestore?: Firestore
 ): Promise<string[]> {
+  const db = firestore ?? getDb();
   const normalized = normalizeWord(word);
   if (!normalized) {
     throw new SynonymError("EMPTY_WORD");
@@ -48,7 +49,7 @@ export async function fetchSynonyms(
     return cached;
   }
 
-  const synonyms = await readSynonyms(firestore, normalized);
+  const synonyms = await readSynonyms(db, normalized);
   if (synonyms === null) {
     throw new SynonymError("NOT_FOUND");
   }
@@ -60,8 +61,13 @@ export async function fetchSynonyms(
 export async function addWordWithSynonyms(
   word: string,
   synonymInput: string,
-  firestore: Firestore = db
+  firestore?: Firestore
 ): Promise<void> {
+  if (!firestore && !isFirebaseConfigured()) {
+    throw new SynonymError("FIREBASE_NOT_CONFIGURED");
+  }
+
+  const db = firestore ?? getDb();
   const normalizedWord = normalizeWord(word);
   const inputSynonyms = parseSynonymInput(synonymInput).filter(
     (synonym) => synonym !== normalizedWord
@@ -74,7 +80,7 @@ export async function addWordWithSynonyms(
     throw new SynonymError("EMPTY_SYNONYMS");
   }
 
-  const existingWord = await readSynonyms(firestore, normalizedWord);
+  const existingWord = await readSynonyms(db, normalizedWord);
   if (existingWord !== null) {
     throw new SynonymError("WORD_EXISTS");
   }
@@ -82,7 +88,7 @@ export async function addWordWithSynonyms(
   const cluster = new Set<string>(inputSynonyms);
 
   for (const synonym of inputSynonyms) {
-    const existingSynonyms = await readSynonyms(firestore, synonym);
+    const existingSynonyms = await readSynonyms(db, synonym);
     if (existingSynonyms) {
       existingSynonyms.forEach((related) => cluster.add(related));
     }
@@ -90,11 +96,11 @@ export async function addWordWithSynonyms(
 
   cluster.delete(normalizedWord);
   const clusterMembers = [normalizedWord, ...cluster];
-  const batch = writeBatch(firestore);
+  const batch = writeBatch(db);
 
   for (const member of clusterMembers) {
     const others = clusterMembers.filter((item) => item !== member);
-    const memberSnapshot = await getDoc(wordRef(firestore, member));
+    const memberSnapshot = await getDoc(wordRef(db, member));
 
     if (memberSnapshot.exists()) {
       const currentSynonyms = dedupeSynonyms(
@@ -102,11 +108,11 @@ export async function addWordWithSynonyms(
           ? memberSnapshot.data().synonyms
           : []
       );
-      batch.update(wordRef(firestore, member), {
+      batch.update(wordRef(db, member), {
         synonyms: mergeSynonymLists(currentSynonyms, others, member),
       });
     } else {
-      batch.set(wordRef(firestore, member), {
+      batch.set(wordRef(db, member), {
         word: member,
         synonyms: others,
       });
@@ -131,6 +137,8 @@ export function getSynonymErrorMessage(code: SynonymError["code"]): string {
       return "This word already exists in the dictionary.";
     case "NOT_FOUND":
       return "Word not found.";
+    case "FIREBASE_NOT_CONFIGURED":
+      return "Community dictionary is unavailable until Firebase is configured.";
     case "NETWORK":
       return "Network error. Check your connection and try again.";
     default:

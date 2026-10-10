@@ -7,6 +7,7 @@ import {
 import { dedupeSynonyms, normalizeWord } from "../utils/synonymUtils";
 import { fetchOnlineSynonyms } from "./datamuseService";
 import { fetchStaticSynonyms } from "./staticSynonymService";
+import { isFirebaseConfigured } from "../config/firebase";
 import {
   clearSynonymCache,
   fetchSynonyms as fetchCommunitySynonyms,
@@ -45,6 +46,10 @@ function buildTaggedResult(
 }
 
 async function safeCommunityLookup(word: string): Promise<string[]> {
+  if (!isFirebaseConfigured()) {
+    return [];
+  }
+
   try {
     return await fetchCommunitySynonyms(word);
   } catch (error) {

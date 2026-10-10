@@ -8,12 +8,14 @@ import { useSynonyms } from "../hooks/useSynonyms";
 import { SynonymError } from "../types";
 import { normalizeWord } from "../utils/synonymUtils";
 import { AddPanel } from "./AddPanel";
+import { FirebaseConfigNotice } from "./FirebaseConfigNotice";
 import { ModeToggle } from "./ModeToggle";
 import { SearchPanel } from "./SearchPanel";
 import { ThemeToggle } from "./ThemeToggle";
 import type { AppMode } from "../types";
 
 export function SynonymApp() {
+  const firebaseReady = isFirebaseConfigured();
   const [mode, setMode] = useState<AppMode>("search");
   const [word, setWord] = useState("");
   const [synonymInput, setSynonymInput] = useState("");
@@ -33,6 +35,9 @@ export function SynonymApp() {
   };
 
   const handleModeChange = (nextMode: AppMode) => {
+    if (nextMode === "add" && !firebaseReady) {
+      return;
+    }
     setMode(nextMode);
     resetForm();
   };
@@ -65,6 +70,14 @@ export function SynonymApp() {
       if (error instanceof SynonymError && error.code === "WORD_EXISTS") {
         setAddError("This word already exists in the dictionary.");
       }
+      if (
+        error instanceof SynonymError &&
+        error.code === "FIREBASE_NOT_CONFIGURED"
+      ) {
+        setAddError(
+          "Firebase is not configured. Add VITE_FIREBASE_* variables in Vercel and redeploy."
+        );
+      }
     }
   };
 
@@ -77,28 +90,20 @@ export function SynonymApp() {
     onClear: resetForm,
   });
 
-  if (!isFirebaseConfigured()) {
-    return (
-      <main className="app-shell">
-        <div className="panel-card">
-          <h1 className="panel-title">Configuration required</h1>
-          <p className="panel-subtitle">
-            Copy <code>.env.example</code> to <code>.env</code> and add your
-            Firebase credentials before using the app.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <main className="app-shell">
         <header className="app-header">
-          <ModeToggle mode={mode} onChange={handleModeChange} />
+          <ModeToggle
+            mode={mode}
+            onChange={handleModeChange}
+            communityEnabled={firebaseReady}
+          />
           <ThemeToggle />
         </header>
+
+        {!firebaseReady && <FirebaseConfigNotice />}
 
         <div className="panel-card">
           {mode === "search" ? (
